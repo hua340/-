@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="作业二：用两层 MLP 训练 XOR，TensorFlow 与 PyTorch 双框架实现，可在浏览器直接运行。">
+  <meta name="theme-color" content="#ebe5d6">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2322312a'/%3E%3Cpath d='M17 39c0-13 6-21 15-21s15 8 15 21v6H17z' fill='%23997856' stroke='%23f4eddd' stroke-width='3'/%3E%3Ccircle cx='27' cy='31' r='2.5' fill='%23f4eddd'/%3E%3Ccircle cx='40' cy='31' r='2.5' fill='%23f4eddd'/%3E%3Crect x='27' y='38' width='13' height='8' rx='4' fill='%23d17e4c'/%3E%3C/svg%3E">
+  <title>作业二：用 MLP 训练 XOR（TensorFlow &amp; PyTorch） · 宫钰杰</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/mlp.css">
+  <script id="tfjsScript" src="../assets/vendor/tf.min.js" defer></script>
+  <script src="../assets/js/site.js" defer></script>
+  <script src="../assets/js/mlp.js" defer></script>
+</head>
+<body data-page="mlp">
+
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="返回作业站首页">
+      <span class="brand-badge" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path d="M9 30c0-11 5-18 15-18s15 7 15 18v7H9z" fill="#997856"/>
+          <ellipse cx="15" cy="12" rx="4.5" ry="3" transform="rotate(-20 15 12)" fill="#997856"/>
+          <ellipse cx="33" cy="12" rx="4.5" ry="3" transform="rotate(20 33 12)" fill="#997856"/>
+          <circle cx="18.5" cy="24" r="1.8" fill="#f6f0e1"/>
+          <circle cx="29.5" cy="24" r="1.8" fill="#f6f0e1"/>
+          <rect x="19" y="29" width="10" height="8" rx="4" fill="#d17f4d"/>
+        </svg>
+      </span>
+      <span class="brand-copy">
+        <strong>作业站</strong>
+        <small>HOMEWORK CLUB</small>
+      </span>
+    </a>
+
+    <a class="back-button" href="../index.html" data-page-link>
+      <span aria-hidden="true">←</span>
+      返回首页
+    </a>
+  </header>
+
+  <main id="main" class="page-shell mlp-page">
+
+    <section class="sub-hero xor-hero">
+      <div class="sub-hero-copy reveal" data-reveal>
+        <div class="eyebrow">
+          <span class="eyebrow-box">ASSIGNMENT 02</span>
+          <span class="eyebrow-line" aria-hidden="true"></span>
+          <span>XOR LAB / DOUBLE RUN</span>
+        </div>
+        <h1>作业二：用 MLP 训练 XOR<br><span class="hero-frameworks">（TensorFlow &amp; PyTorch）</span></h1>
+        <p class="sub-lead">两层 MLP 神经网络求解 XOR 异或问题，分别使用 TensorFlow GradientTape + Adam、PyTorch autograd + Adam 两套框架实现。</p>
+        <div class="mlp-meta" aria-label="实验参数">
+          <span><b>2-2-1</b> MLP</span>
+          <span><b>300</b> EPOCHS</span>
+          <span><b>4</b> SAMPLES</span>
+          <span><b>2</b> FRAMEWORKS</span>
+        </div>
+      </div>
+
+      <div class="xor-blueprint reveal" data-reveal style="--reveal-delay: 120ms" aria-hidden="true">
+        <span class="blueprint-label">NETWORK / 2-2-1</span>
+        <svg class="blueprint-svg" viewBox="0 0 360 250">
+          <path d="M64 58 166 123M64 192 166 123M64 58l102 134M64 192l102-69M194 123l104-65M194 123l104 65M64 58l234 130M64 192l234-69" fill="none" stroke="#52695b" stroke-width="3" opacity=".5"/>
+          <circle cx="56" cy="58" r="27" fill="#f2ebdb" stroke="#22312a" stroke-width="4"/>
+          <circle cx="56" cy="192" r="27" fill="#f2ebdb" stroke="#22312a" stroke-width="4"/>
+          <circle cx="180" cy="123" r="27" fill="#d17f4d" stroke="#22312a" stroke-width="4"/>
+          <circle cx="196" cy="58" r="27" fill="#d17f4d" stroke="#22312a" stroke-width="4"/>
+          <circle cx="196" cy="192" r="27" fill="#d17f4d" stroke="#22312a" stroke-width="4"/>
+          <circle cx="308" cy="123" r="29" fill="#2f4439" stroke="#22312a" stroke-width="4"/>
+          <text x="47" y="64" font-family="monospace" font-size="15" fill="#22312a">x₁</text>
+          <text x="47" y="198" font-family="monospace" font-size="15" fill="#22312a">x₂</text>
+          <text x="174" y="129" font-family="monospace" font-size="14" fill="#22312a">h₁</text>
+          <text x="190" y="64" font-family="monospace" font-size="14" fill="#22312a">h₂</text>
+          <text x="303" y="129" font-family="monospace" font-size="15" fill="#f2ebdb">y</text>
+          <path d="M118 25l4-13 4 13 13 4-13 4-4 13-4-13-13-4z" fill="#a8b59e" stroke="#22312a" stroke-width="3"/>
+          <path d="M300 43l3-9 3 9 9 3-9 3-3 9-3-9-9-3z" fill="#d17f4d" stroke="#22312a" stroke-width="2.5"/>
+        </svg>
+        <div class="blueprint-foot">
+          <span>SIGMOID</span>
+          <span>BCE LOGITS</span>
+          <span>ADAM</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="lab-bench" aria-labelledby="bench-title">
+      <div class="section-strip reveal" data-reveal>
+        <span class="section-no">01</span>
+        <h2 id="bench-title">双框架实验台</h2>
+        <span class="strip-line" aria-hidden="true"></span>
+        <span class="strip-en">SAME START / TWO PATHS</span>
+      </div>
+
+      <p class="bench-lead reveal" data-reveal>两套实现使用相同的初始权重、相同的 Adam 学习率和 300 轮训练。分别运行，观察它们如何收敛到同一个 XOR。</p>
+
+      <div class="lab-grid">
+        <article class="framework-card tf-card reveal" data-reveal>
+          <header class="framework-head">
+            <div class="framework-title">
+              <span class="framework-badge tf-badge">TF</span>
+              <div>
+                <p class="lab-kicker">FRAMEWORK / 01</p>
+                <h2>TensorFlow</h2>
+              </div>
+            </div>
+            <div class="framework-tags">
+              <span>GradientTape</span>
+              <span>Adam</span>
+              <span>300</span>
+            </div>
+          </header>
+
+          <div class="framework-body">
+            <div class="code-shell">
+              <div class="code-toolbar">
+                <span class="file-name"><i aria-hidden="true"></i> xor_tensorflow.py</span>
+                <button class="copy-btn" type="button" data-copy="tf-code">复制代码</button>
+              </div>
+              <pre class="code-panel" tabindex="0"><code id="tf-code" class="language-python"></code></pre>
+            </div>
+
+            <div class="run-strip">
+              <button class="run-btn" type="button" data-run="tf">
+                <span class="run-icon" aria-hidden="true">▶</span>
+                <span class="run-label">运行代码</span>
+                <span class="run-loader" aria-hidden="true"></span>
+              </button>
+              <div class="run-note">
+                <span class="run-status" data-status="tf">等待运行 · TensorFlow.js CPU</span>
+                <span class="run-hint">每次运行重新初始化参数</span>
+              </div>
+              <div class="mini-progress" aria-hidden="true"><span data-progress="tf"></span></div>
+            </div>
+
+            <div class="terminal terminal-compact">
+              <div class="terminal-bar">
+                <span>LIVE LOG / 训练日志</span>
+                <span class="terminal-tag">TFJS</span>
+              </div>
+              <pre class="terminal-output" id="tf-output" data-output="tf" aria-live="polite"><span class="terminal-muted">$ 等待运行</span></pre>
+            </div>
+
+            <footer class="framework-foot">
+              <span>2 → 2 → 1</span>
+              <span>LR 0.03</span>
+              <span>300 EPOCHS</span>
+            </footer>
+          </div>
+        </article>
+
+        <article class="framework-card torch-card reveal" data-reveal style="--reveal-delay: 90ms">
+          <header class="framework-head">
+            <div class="framework-title">
+              <span class="framework-badge torch-badge">PT</span>
+              <div>
+                <p class="lab-kicker">FRAMEWORK / 02</p>
+                <h2>PyTorch</h2>
+              </div>
+            </div>
+            <div class="framework-tags">
+              <span>autograd</span>
+              <span>Adam</span>
+              <span>300</span>
+            </div>
+          </header>
+
+          <div class="framework-body">
+            <div class="code-shell">
+              <div class="code-toolbar">
+                <span class="file-name"><i aria-hidden="true"></i> xor_pytorch.py</span>
+                <button class="copy-btn" type="button" data-copy="torch-code">复制代码</button>
+              </div>
+              <pre class="code-panel" tabindex="0"><code id="torch-code" class="language-python"></code></pre>
+            </div>
+
+            <div class="run-strip">
+              <button class="run-btn" type="button" data-run="torch">
+                <span class="run-icon" aria-hidden="true">▶</span>
+                <span class="run-label">运行代码</span>
+                <span class="run-loader" aria-hidden="true"></span>
+              </button>
+              <div class="run-note">
+                <span class="run-status" data-status="torch">等待运行 · JS 复刻 autograd</span>
+                <span class="run-hint">相同参数，独立训练</span>
+              </div>
+              <div class="mini-progress" aria-hidden="true"><span data-progress="torch"></span></div>
+            </div>
+
+            <div class="terminal terminal-compact">
+              <div class="terminal-bar">
+                <span>LIVE LOG / 训练日志</span>
+                <span class="terminal-tag">PYTORCH → JS</span>
+              </div>
+              <pre class="terminal-output" id="torch-output" data-output="torch" aria-live="polite"><span class="terminal-muted">$ 等待运行</span></pre>
+            </div>
+
+            <footer class="framework-foot">
+              <span>2 → 2 → 1</span>
+              <span>LR 0.03</span>
+              <span>FLOAT64</span>
+            </footer>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="viz-section" aria-labelledby="viz-title">
+      <div class="section-strip reveal" data-reveal>
+        <span class="section-no">02</span>
+        <h2 id="viz-title">XOR 分类结果</h2>
+        <span class="strip-line" aria-hidden="true"></span>
+        <span class="strip-en">4 SAMPLES / 2 CLASSES</span>
+      </div>
+
+      <div class="viz-card reveal" data-reveal>
+        <div class="viz-head">
+          <div>
+            <p class="lab-kicker">AFTER TRAINING / VISUAL CHECK</p>
+            <h3>四个样本点，落在哪一类？</h3>
+            <p class="viz-note">运行任一框架后，对应结果会点亮。方块 = 0 类，圆点 = 1 类。</p>
+          </div>
+          <div class="viz-legend" aria-label="图例">
+            <span><i class="legend-mark legend-zero"></i>0 类 · 方块</span>
+            <span><i class="legend-mark legend-one"></i>1 类 · 圆点</span>
+          </div>
+        </div>
+
+        <div class="viz-grid">
+          <article class="viz-panel" data-viz="tf">
+            <header class="viz-panel-head">
+              <div>
+                <span class="viz-framework">TensorFlow</span>
+                <span class="viz-sub">GradientTape + Adam</span>
+              </div>
+              <span class="viz-state" data-viz-state="tf">等待训练</span>
+            </header>
+
+            <div class="xor-plot" role="img" aria-label="TensorFlow 的 XOR 四样本分类示意图">
+              <span class="axis-label axis-y">x₂</span>
+              <span class="axis-label axis-x">x₁</span>
+              <span class="axis-tick tick-y-one">1</span>
+              <span class="axis-tick tick-y-zero">0</span>
+              <span class="axis-tick tick-x-zero">0</span>
+              <span class="axis-tick tick-x-one">1</span>
+              <div class="plot-grid">
+                <div class="sample-cell" data-sample="01"><span class="sample-coord">01</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="11"><span class="sample-coord">11</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="00"><span class="sample-coord">00</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="10"><span class="sample-coord">10</span><span class="sample-dot">?</span></div>
+              </div>
+            </div>
+
+            <footer class="viz-foot">
+              <span>correct / 4</span>
+              <strong data-viz-acc="tf">— / 4</strong>
+            </footer>
+          </article>
+
+          <article class="viz-panel" data-viz="torch">
+            <header class="viz-panel-head">
+              <div>
+                <span class="viz-framework">PyTorch</span>
+                <span class="viz-sub">autograd + Adam</span>
+              </div>
+              <span class="viz-state" data-viz-state="torch">等待训练</span>
+            </header>
+
+            <div class="xor-plot" role="img" aria-label="PyTorch 的 XOR 四样本分类示意图">
+              <span class="axis-label axis-y">x₂</span>
+              <span class="axis-label axis-x">x₁</span>
+              <span class="axis-tick tick-y-one">1</span>
+              <span class="axis-tick tick-y-zero">0</span>
+              <span class="axis-tick tick-x-zero">0</span>
+              <span class="axis-tick tick-x-one">1</span>
+              <div class="plot-grid">
+                <div class="sample-cell" data-sample="01"><span class="sample-coord">01</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="11"><span class="sample-coord">11</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="00"><span class="sample-coord">00</span><span class="sample-dot">?</span></div>
+                <div class="sample-cell" data-sample="10"><span class="sample-coord">10</span><span class="sample-dot">?</span></div>
+              </div>
+            </div>
+
+            <footer class="viz-foot">
+              <span>correct / 4</span>
+              <strong data-viz-acc="torch">— / 4</strong>
+            </footer>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="mlp-footnote reveal" data-reveal>
+      <span class="footnote-icon" aria-hidden="true">[ ]</span>
+      <p>网页端由 TensorFlow.js 与纯 JS autograd 等价复现原版 Python 训练。浮点精度可能略有差异，最终预测保持一致。本页内容与代码均不可编辑。</p>
+    </section>
+
+    <div class="back-home-row reveal" data-reveal>
+      <a class="btn btn-dark" href="../index.html" data-page-link>
+        <span class="btn-icon" aria-hidden="true">←</span>
+        返回首页
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>ASSIGNMENT 02 / MLP × XOR</span>
+    <span>HOMEWORK CLUB</span>
+  </footer>
+
+</body>
+</html>
